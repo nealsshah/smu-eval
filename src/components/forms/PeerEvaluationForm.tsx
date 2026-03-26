@@ -88,13 +88,13 @@ export function PeerEvaluationForm({
       );
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error?.toString() || "Failed to save draft.");
+        setError(data.error?.toString() || "Could not save your draft. Please try again.");
         return;
       }
       event("evaluation_draft_saved");
       router.refresh();
     } catch {
-      setError("An error occurred while saving.");
+      setError("Something went wrong while saving. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -133,13 +133,13 @@ export function PeerEvaluationForm({
       );
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error?.toString() || "Failed to submit.");
+        setError(data.error?.toString() || "Could not submit your evaluation. Please try again.");
         return;
       }
       event("evaluation_submitted");
       setSuccess(true);
     } catch {
-      setError("An error occurred while submitting.");
+      setError("Something went wrong while submitting. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -149,9 +149,9 @@ export function PeerEvaluationForm({
     return (
       <div>
         <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-6">
-          <p className="font-medium">Evaluation Successfully Submitted!</p>
+          <p className="font-medium">Evaluation submitted</p>
           <p className="text-sm mt-1">
-            Your evaluation for {targetStudentName} has been recorded.
+            Your evaluation for {targetStudentName} has been recorded. You cannot edit it after submission.
           </p>
         </div>
         <Button
@@ -176,7 +176,7 @@ export function PeerEvaluationForm({
 
         {isSubmitted && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 mb-4 text-sm">
-            This evaluation has already been submitted.
+            This evaluation has been submitted and can no longer be edited.
           </div>
         )}
 
@@ -220,7 +220,7 @@ export function PeerEvaluationForm({
                 {CRITERIA.map((criterion, idx) => (
                   <tr
                     key={criterion}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    className={idx % 2 === 0 ? "bg-white" : "bg-smu-surface/50"}
                   >
                     <td className="p-3">
                       <p className="font-medium">{CRITERIA_LABELS[criterion]}</p>
@@ -259,7 +259,7 @@ export function PeerEvaluationForm({
         <Card className="mb-4">
           <CardContent className="py-3 flex items-center justify-between">
             <span className="font-bold text-sm">Total Points</span>
-            <span className="text-lg font-bold text-smu-navy">
+            <span className="font-heading text-2xl text-smu-navy">
               {totalPoints.toFixed(1)} / {maxPoints.toFixed(1)}
             </span>
           </CardContent>
@@ -268,12 +268,12 @@ export function PeerEvaluationForm({
         {/* Comments */}
         <div className="mb-6">
           <label className="block text-sm font-bold text-smu-text mb-1">
-            Comments
+            Written Feedback
           </label>
           <Textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
-            placeholder="Provide written feedback about this team member..."
+            placeholder="Share specific examples of this team member's contributions..."
             maxLength={MAX_COMMENT_LENGTH}
             rows={4}
             disabled={isSubmitted}
@@ -288,7 +288,7 @@ export function PeerEvaluationForm({
         {!isSubmitted && (
           <div className="flex gap-3">
             <Button variant="outline" onClick={resetFields} disabled={saving || submitting}>
-              Reset Fields
+              Clear All
             </Button>
             <Button
               variant="outline"
@@ -301,7 +301,7 @@ export function PeerEvaluationForm({
             <Button
               onClick={submitEvaluation}
               disabled={saving || submitting}
-              className="bg-smu-gold hover:bg-smu-gold-hover text-white"
+              className="bg-smu-gold hover:bg-smu-gold-hover text-white transition-all duration-200 hover:shadow-lg hover:shadow-smu-gold/20"
             >
               {submitting ? "Submitting..." : "Submit Evaluation"}
             </Button>
@@ -313,13 +313,13 @@ export function PeerEvaluationForm({
       <div className="w-64 shrink-0 hidden lg:block">
         <Card>
           <CardHeader className="bg-smu-gold text-white rounded-t-lg py-3">
-            <CardTitle className="text-sm font-medium">Validation Rules</CardTitle>
+            <CardTitle className="text-sm font-medium">Submission Guidelines</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                All criteria must be completed
+                Score every criterion before submitting
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>
@@ -327,20 +327,16 @@ export function PeerEvaluationForm({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                Comments cannot exceed {MAX_COMMENT_LENGTH} characters
+                Written feedback is limited to {MAX_COMMENT_LENGTH} characters
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                Cannot evaluate yourself
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                Cannot evaluate outside your group
+                You can only evaluate members of your own group
               </li>
               {cycleCloseDate && (
                 <li className="flex items-start gap-2">
                   <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                  Deadline: {new Date(cycleCloseDate).toLocaleDateString()}
+                  Due by {new Date(cycleCloseDate).toLocaleDateString()}
                 </li>
               )}
             </ul>

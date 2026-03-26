@@ -87,11 +87,11 @@ export default async function PeerEvaluationsPage() {
       {courses.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            You are not enrolled in any courses with active evaluation cycles.
+            No active evaluation cycles right now. Your professor will open evaluations when they are ready.
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 stagger-children">
           {courses.map((data) => {
             if (!data) return null;
             const allDone = data.submitted === data.peers;
@@ -100,7 +100,7 @@ export default async function PeerEvaluationsPage() {
                 key={data.course.course_id}
                 href={`/student/peer-evaluations/${data.course.course_id}`}
               >
-                <Card className="hover:border-smu-gold transition-colors cursor-pointer">
+                <Card className="hover:border-smu-gold/50 transition-all duration-200 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">
@@ -122,7 +122,7 @@ export default async function PeerEvaluationsPage() {
                     </div>
                     {data.cycle.close_datetime && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Deadline: {new Date(data.cycle.close_datetime).toLocaleDateString()}
+                        Due by {new Date(data.cycle.close_datetime).toLocaleDateString()}
                       </p>
                     )}
                   </CardContent>

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     where: { course_id, professor_id: professorId },
   });
   if (!course) {
-    return NextResponse.json({ error: "Course not found or not yours" }, { status: 403 });
+    return NextResponse.json({ error: "This course was not found or does not belong to you." }, { status: 403 });
   }
 
   // Check no student is already in a group for this course
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       (m) => `${m.Student.first_name} ${m.Student.last_name}`
     );
     return NextResponse.json(
-      { error: `Students already in a group: ${names.join(", ")}` },
+      { error: `These students are already assigned to a group: ${names.join(", ")}` },
       { status: 400 }
     );
   }

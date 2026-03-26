@@ -26,7 +26,7 @@ export default async function StudentGroupsPage() {
       {memberships.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            You are not assigned to any groups yet.
+            You haven&apos;t been assigned to any groups yet. Your professor will add you to a group.
           </CardContent>
         </Card>
       ) : (

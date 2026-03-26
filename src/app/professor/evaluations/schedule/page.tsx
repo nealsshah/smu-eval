@@ -63,11 +63,11 @@ export default async function ScheduleEvaluationPage() {
 
       {/* Existing cycles */}
       <div className="mt-8">
-        <h2 className="text-lg font-semibold mb-3">Existing Evaluation Cycles</h2>
+        <h2 className="font-heading text-xl mb-3">Existing Evaluation Cycles</h2>
         {allCycles.length === 0 ? (
           <Card>
             <CardContent className="py-4 text-sm text-muted-foreground">
-              No evaluation cycles created yet.
+              No evaluation cycles yet. Create one above to open evaluations for a group.
             </CardContent>
           </Card>
         ) : (
@@ -82,11 +82,11 @@ export default async function ScheduleEvaluationPage() {
                     <p className="text-xs text-muted-foreground">
                       {cycle.open_datetime
                         ? new Date(cycle.open_datetime).toLocaleDateString()
-                        : "N/A"}{" "}
+                        : "No date set"}{" "}
                       —{" "}
                       {cycle.close_datetime
                         ? new Date(cycle.close_datetime).toLocaleDateString()
-                        : "N/A"}
+                        : "No date set"}
                     </p>
                   </div>
                   <span

@@ -47,8 +47,8 @@ export async function GET(
   }
 
   const result = await getGroupAndCycle(session.user.id, courseId);
-  if (!result) return NextResponse.json({ error: "Not in a group for this course" }, { status: 403 });
-  if (!result.cycle) return NextResponse.json({ error: "No evaluation cycle" }, { status: 404 });
+  if (!result) return NextResponse.json({ error: "You are not in a group for this course." }, { status: 403 });
+  if (!result.cycle) return NextResponse.json({ error: "There is no active evaluation cycle for this course." }, { status: 404 });
 
   const evaluation = await prisma.peerEvaluation.findFirst({
     where: {
@@ -85,18 +85,18 @@ export async function POST(
   }
 
   if (targetStudentId === studentId) {
-    return NextResponse.json({ error: "Cannot evaluate yourself" }, { status: 400 });
+    return NextResponse.json({ error: "You cannot evaluate yourself." }, { status: 400 });
   }
 
   const result = await getGroupAndCycle(studentId, courseId);
-  if (!result) return NextResponse.json({ error: "Not in a group for this course" }, { status: 403 });
+  if (!result) return NextResponse.json({ error: "You are not in a group for this course." }, { status: 403 });
 
   const { group, cycle } = result;
-  if (!cycle) return NextResponse.json({ error: "No evaluation cycle" }, { status: 404 });
+  if (!cycle) return NextResponse.json({ error: "There is no active evaluation cycle for this course." }, { status: 404 });
 
   const targetInGroup = group.GroupMember.some((m) => m.student_id === targetStudentId);
   if (!targetInGroup) {
-    return NextResponse.json({ error: "Target student is not in your group" }, { status: 400 });
+    return NextResponse.json({ error: "This student is not in your group." }, { status: 400 });
   }
 
   const existing = await prisma.peerEvaluation.findFirst({
@@ -176,23 +176,23 @@ export async function PUT(
   }
 
   if (targetStudentId === studentId) {
-    return NextResponse.json({ error: "Cannot evaluate yourself" }, { status: 400 });
+    return NextResponse.json({ error: "You cannot evaluate yourself." }, { status: 400 });
   }
 
   const result = await getGroupAndCycle(studentId, courseId);
-  if (!result) return NextResponse.json({ error: "Not in a group for this course" }, { status: 403 });
+  if (!result) return NextResponse.json({ error: "You are not in a group for this course." }, { status: 403 });
 
   const { group, cycle } = result;
-  if (!cycle) return NextResponse.json({ error: "No evaluation cycle" }, { status: 404 });
+  if (!cycle) return NextResponse.json({ error: "There is no active evaluation cycle for this course." }, { status: 404 });
 
   const targetInGroup = group.GroupMember.some((m) => m.student_id === targetStudentId);
   if (!targetInGroup) {
-    return NextResponse.json({ error: "Target student is not in your group" }, { status: 400 });
+    return NextResponse.json({ error: "This student is not in your group." }, { status: 400 });
   }
 
   // Check deadline
   if (cycle.close_datetime && new Date() > cycle.close_datetime) {
-    return NextResponse.json({ error: "Evaluation cycle has closed" }, { status: 400 });
+    return NextResponse.json({ error: "The evaluation deadline has passed. You can no longer submit." }, { status: 400 });
   }
 
   const existing = await prisma.peerEvaluation.findFirst({
@@ -204,7 +204,7 @@ export async function PUT(
   });
 
   if (existing?.status === "Submitted") {
-    return NextResponse.json({ error: "Already submitted evaluation for this student in this cycle" }, { status: 400 });
+    return NextResponse.json({ error: "You have already submitted an evaluation for this student in this cycle." }, { status: 400 });
   }
 
   const evalId = existing?.eval_id || generateId();

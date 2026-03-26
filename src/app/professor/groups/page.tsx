@@ -26,7 +26,7 @@ export default async function ProfessorGroupsPage() {
       <div className="flex items-center justify-between mb-6">
         <PageHeader title="Groups" subtitle="Manage groups across your courses" />
         <Link href="/professor/groups/create">
-          <Button className="bg-smu-gold hover:bg-smu-gold-hover text-white">
+          <Button className="bg-smu-gold hover:bg-smu-gold-hover text-white transition-all duration-200 hover:shadow-lg hover:shadow-smu-gold/20">
             <Plus className="w-4 h-4 mr-1" /> Create Group
           </Button>
         </Link>
@@ -34,9 +34,9 @@ export default async function ProfessorGroupsPage() {
 
       {courses.map((course) => (
         <div key={course.course_id} className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">
+          <h2 className="font-heading text-xl mb-3">
             {course.course_name}
-            <span className="text-sm text-muted-foreground font-normal ml-2">
+            <span className="text-sm text-muted-foreground font-sans font-normal ml-2">
               Semester {course.semester}
             </span>
           </h2>
@@ -44,7 +44,7 @@ export default async function ProfessorGroupsPage() {
           {course.ProjectGroup.length === 0 ? (
             <Card>
               <CardContent className="py-4 text-sm text-muted-foreground">
-                No groups created yet.
+                No groups yet. Use the &ldquo;Create Group&rdquo; button to get started.
               </CardContent>
             </Card>
           ) : (
@@ -59,7 +59,7 @@ export default async function ProfessorGroupsPage() {
                       {group.GroupMember.map((m) => (
                         <span
                           key={m.student_id}
-                          className="inline-flex items-center gap-1 bg-smu-navy/5 text-smu-text text-xs px-2 py-1 rounded"
+                          className="inline-flex items-center gap-1.5 bg-smu-navy/5 text-smu-text text-xs px-2.5 py-1.5 rounded-md"
                         >
                           {m.Student.first_name} {m.Student.last_name}
                         </span>

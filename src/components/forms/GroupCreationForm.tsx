@@ -58,9 +58,9 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
     setError("");
 
     if (!courseId) { setError("Please select a course."); return; }
-    if (!groupName.trim()) { setError("Group name is required."); return; }
-    if (groupName.length > 20) { setError("Group name cannot exceed 20 characters."); return; }
-    if (selectedStudents.size < 2) { setError("At least 2 students are required."); return; }
+    if (!groupName.trim()) { setError("Please enter a group name."); return; }
+    if (groupName.length > 20) { setError("Group name must be 20 characters or fewer."); return; }
+    if (selectedStudents.size < 2) { setError("Select at least 2 students to form a group."); return; }
 
     setLoading(true);
 
@@ -77,14 +77,14 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(typeof data.error === "string" ? data.error : "Failed to create group.");
+        setError(typeof data.error === "string" ? data.error : "Could not create the group. Please try again.");
         return;
       }
 
       event("group_created");
       setSuccess(true);
     } catch {
-      setError("An error occurred.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,7 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
     return (
       <div>
         <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-4">
-          <p className="font-medium">Group created successfully!</p>
+          <p className="font-medium">Group created. Students have been assigned.</p>
         </div>
         <Button onClick={() => router.push("/professor/groups")} variant="outline">
           Back to Groups

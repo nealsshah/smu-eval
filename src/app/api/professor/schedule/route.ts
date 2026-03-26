@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const { course_id, group_id, open_datetime, close_datetime, comments } = body;
 
   if (!course_id || !group_id || !open_datetime || !close_datetime) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json({ error: "Please fill in all required fields: course, group, start date, and due date." }, { status: 400 });
   }
 
   // Verify professor owns course
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     where: { course_id, professor_id: professorId },
   });
   if (!course) {
-    return NextResponse.json({ error: "Course not found or not yours" }, { status: 403 });
+    return NextResponse.json({ error: "This course was not found or does not belong to you." }, { status: 403 });
   }
 
   // Verify group belongs to course
@@ -36,14 +36,14 @@ export async function POST(request: NextRequest) {
     where: { group_id, course_id },
   });
   if (!group) {
-    return NextResponse.json({ error: "Group not found in this course" }, { status: 400 });
+    return NextResponse.json({ error: "This group does not belong to the selected course." }, { status: 400 });
   }
 
   const openDt = new Date(open_datetime);
   const closeDt = new Date(close_datetime);
 
   if (closeDt <= openDt) {
-    return NextResponse.json({ error: "Close date must be after open date" }, { status: 400 });
+    return NextResponse.json({ error: "The due date must be after the start date." }, { status: 400 });
   }
 
   // Check for overlapping cycles for this group
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (overlapping) {
-    return NextResponse.json({ error: "Overlapping evaluation cycle exists for this group" }, { status: 400 });
+    return NextResponse.json({ error: "This group already has an evaluation cycle during this time period." }, { status: 400 });
   }
 
   const cycleId = generateId();

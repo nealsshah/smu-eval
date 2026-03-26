@@ -36,23 +36,23 @@ export const evaluationDraftSchema = z.object({
       .max(MAX_SCORE)
       .optional()
   ),
-  written_feedback: z.string().max(MAX_COMMENT_LENGTH, `Comments cannot exceed ${MAX_COMMENT_LENGTH} characters.`).optional(),
+  written_feedback: z.string().max(MAX_COMMENT_LENGTH, `Written feedback must be ${MAX_COMMENT_LENGTH} characters or fewer.`).optional(),
 });
 
 export const evaluationSubmitSchema = z.object({
-  ratee_student_id: z.string().min(1, "Group member is required."),
+  ratee_student_id: z.string().min(1, "Please select a group member."),
   scores: z.object(
     Object.fromEntries(
       CRITERIA.map((c) => [
         c,
         z.coerce
-          .number({ error: `${CRITERIA_LABELS[c]} must be completed.` })
+          .number({ error: `Please score "${CRITERIA_LABELS[c]}".` })
           .min(MIN_SCORE, `Score must be at least ${MIN_SCORE}.`)
-          .max(MAX_SCORE, `Score cannot exceed ${MAX_SCORE}.`),
+          .max(MAX_SCORE, `Score must be ${MAX_SCORE} or lower.`),
       ])
     )
   ),
-  written_feedback: z.string().max(MAX_COMMENT_LENGTH, `Comments cannot exceed ${MAX_COMMENT_LENGTH} characters.`).optional(),
+  written_feedback: z.string().max(MAX_COMMENT_LENGTH, `Written feedback must be ${MAX_COMMENT_LENGTH} characters or fewer.`).optional(),
 });
 
 export type EvaluationDraftInput = z.infer<typeof evaluationDraftSchema>;

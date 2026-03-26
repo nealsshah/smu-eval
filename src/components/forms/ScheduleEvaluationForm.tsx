@@ -52,13 +52,13 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
 
     if (!courseId) { setError("Please select a course."); return; }
     if (!groupId) { setError("Please select a group."); return; }
-    if (!openDate) { setError("Open date is required."); return; }
-    if (!closeDate) { setError("Close date is required."); return; }
+    if (!openDate) { setError("Please set a start date."); return; }
+    if (!closeDate) { setError("Please set a due date."); return; }
     if (new Date(closeDate) <= new Date(openDate)) {
-      setError("Close date must be after open date.");
+      setError("The due date must be after the start date.");
       return;
     }
-    if (comments.length > 250) { setError("Comments cannot exceed 250 characters."); return; }
+    if (comments.length > 250) { setError("Notes cannot exceed 250 characters."); return; }
 
     setLoading(true);
 
@@ -77,7 +77,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(typeof data.error === "string" ? data.error : "Failed to create schedule.");
+        setError(typeof data.error === "string" ? data.error : "Could not create the evaluation cycle. Please try again.");
         return;
       }
 
@@ -85,7 +85,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
       setSuccess(true);
       router.refresh();
     } catch {
-      setError("An error occurred.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
   if (success) {
     return (
       <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-4">
-        <p className="font-medium">Evaluation cycle created successfully!</p>
+        <p className="font-medium">Evaluation cycle created. Students can now submit evaluations during the open period.</p>
         <Button onClick={() => setSuccess(false)} variant="outline" className="mt-2" size="sm">
           Create Another
         </Button>
@@ -146,7 +146,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-bold text-smu-text mb-1">Opens At</label>
+          <label className="block text-sm font-bold text-smu-text mb-1">Start Date</label>
           <Input
             type="datetime-local"
             value={openDate}
@@ -155,7 +155,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-bold text-smu-text mb-1">Closes At</label>
+          <label className="block text-sm font-bold text-smu-text mb-1">Due Date</label>
           <Input
             type="datetime-local"
             value={closeDate}
@@ -166,13 +166,13 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-smu-text mb-1">Comments</label>
+        <label className="block text-sm font-bold text-smu-text mb-1">Notes (optional)</label>
         <Textarea
           value={comments}
           onChange={(e) => setComments(e.target.value)}
           maxLength={250}
           rows={3}
-          placeholder="Optional notes for this evaluation cycle..."
+          placeholder="Add any instructions or context for this evaluation cycle..."
           className="bg-white"
         />
         <p className="text-xs text-muted-foreground mt-1 text-right">{comments.length}/250</p>

@@ -17,17 +17,16 @@ export default async function ImportPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-smu-gold" />
-            Import Feature
+            Coming Soon
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            The import integration is being configured. When available, you will
-            be able to import courses and student enrollments from the SMU source
-            system.
+            The import feature is being set up. Once ready, you&apos;ll be able to
+            bring in courses and student enrollments directly from SMU systems.
           </p>
           <p className="text-sm text-muted-foreground">
-            Supported import methods (coming soon):
+            Planned import methods:
           </p>
           <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
             <li>Direct API integration with SMU systems</li>

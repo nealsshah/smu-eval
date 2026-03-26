@@ -19,8 +19,8 @@ export function Sidebar({ items }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 bg-smu-navy text-white flex flex-col shrink-0">
-      <nav className="flex-1 py-4">
+    <aside className="w-56 bg-smu-navy text-white flex flex-col shrink-0 border-r border-white/5">
+      <nav className="flex-1 py-6 stagger-children">
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
@@ -29,20 +29,20 @@ export function Sidebar({ items }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-5 py-3 text-sm transition-colors",
+                "flex items-center gap-3 px-5 py-3 text-sm transition-all duration-200",
                 isActive
-                  ? "bg-white/10 text-smu-gold font-medium border-r-2 border-smu-gold"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
+                  ? "bg-smu-gold/10 text-smu-gold font-medium border-r-2 border-smu-gold"
+                  : "text-white/50 hover:bg-white/5 hover:text-white/90"
               )}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className={cn("w-4 h-4", isActive && "text-smu-gold")} />
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="p-4 border-t border-white/10">
-        <p className="text-xs text-white/40 text-center">
+      <div className="p-5 border-t border-white/8">
+        <p className="text-[11px] text-white/30 leading-relaxed uppercase tracking-widest text-center">
           Singapore Management<br />University
         </p>
       </div>

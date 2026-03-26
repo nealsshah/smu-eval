@@ -46,7 +46,7 @@ export default async function CourseEvaluationsPage({
   if (!groupMembership) {
     return (
       <div>
-        <PageHeader title={course.course_name} subtitle="You are not assigned to a group for this course yet." />
+        <PageHeader title={course.course_name} subtitle="You haven't been assigned to a group for this course yet. Your professor will add you to a group." />
       </div>
     );
   }
@@ -85,7 +85,7 @@ export default async function CourseEvaluationsPage({
         subtitle={`Group: ${group.group_name} · Semester ${course.semester}`}
       />
 
-      <div className="grid gap-3">
+      <div className="grid gap-3 stagger-children">
         {sortedPeers.map((peer) => {
           const evaluation = evalMap.get(peer.student_id);
           const status = evaluation
@@ -103,10 +103,10 @@ export default async function CourseEvaluationsPage({
                   : "#"
               }
             >
-              <Card className="hover:border-smu-gold transition-colors cursor-pointer">
+              <Card className="hover:border-smu-gold/50 transition-all duration-200 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5">
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-smu-navy/10 flex items-center justify-center text-smu-navy font-medium text-sm">
+                    <div className="w-10 h-10 rounded-full bg-smu-navy flex items-center justify-center text-white font-medium text-sm">
                       {peer.Student.first_name[0]}
                       {peer.Student.last_name[0]}
                     </div>
