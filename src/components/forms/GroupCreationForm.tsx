@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 import { event } from "@/lib/analytics/gtag";
 
 interface CourseData {
@@ -92,9 +93,25 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
 
   if (success) {
     return (
-      <div>
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-4">
-          <p className="font-medium">Group created. Students have been assigned.</p>
+      <div className="animate-fade-up">
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-6 mb-4 flex items-start gap-4">
+          <div className="shrink-0 animate-check-circle">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <circle cx="18" cy="18" r="17" fill="#22C55E" opacity="0.15" />
+              <circle cx="18" cy="18" r="17" stroke="#22C55E" strokeWidth="1.5" />
+              <path
+                d="M12 18.5L16 22.5L24 14.5"
+                stroke="#16A34A"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="animate-check-draw"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium">Group created. Students have been assigned.</p>
+          </div>
         </div>
         <Button onClick={() => router.push("/professor/groups")} variant="outline">
           Back to Groups
@@ -106,7 +123,7 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm animate-alert-in">
           {error}
         </div>
       )}
@@ -182,7 +199,12 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
             Cancel
           </Button>
           <Button type="submit" disabled={loading} className="bg-smu-gold hover:bg-smu-gold-hover text-white">
-            {loading ? "Creating..." : "Create Group"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin-slow" />
+                Creating…
+              </span>
+            ) : "Create Group"}
           </Button>
         </div>
       </div>

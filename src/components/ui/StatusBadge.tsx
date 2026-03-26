@@ -12,6 +12,7 @@ const statusConfig: Record<StatusType, { style: string; label: string; dot: stri
 
 export function StatusBadge({ status }: { status: StatusType }) {
   const config = statusConfig[status];
+  const isPending = status === "in-progress" || status === "draft";
   return (
     <span
       className={cn(
@@ -19,7 +20,7 @@ export function StatusBadge({ status }: { status: StatusType }) {
         config.style
       )}
     >
-      <span className={cn("w-1.5 h-1.5 rounded-full", config.dot)} />
+      <span className={cn("w-1.5 h-1.5 rounded-full", config.dot, isPending && "animate-status-pulse")} />
       {config.label}
     </span>
   );

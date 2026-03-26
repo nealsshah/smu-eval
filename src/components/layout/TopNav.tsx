@@ -26,7 +26,7 @@ export function TopNav() {
             <div className="w-px h-5 bg-white/15" />
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-all duration-200 hover:gap-2"
             >
               <LogOut className="w-3.5 h-3.5" />
               Log out

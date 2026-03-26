@@ -13,7 +13,7 @@ export function AppShell({ children, sidebarItems }: AppShellProps) {
       <TopNav />
       <div className="flex flex-1 overflow-hidden">
         {sidebarItems && <Sidebar items={sidebarItems} />}
-        <main className="flex-1 overflow-auto p-6 bg-smu-surface">
+        <main className="flex-1 overflow-auto p-6 bg-smu-surface animate-content-enter">
           {children}
         </main>
       </div>

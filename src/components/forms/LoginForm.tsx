@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/lib/validations/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { event } from "@/lib/analytics/gtag";
 
 export function LoginForm() {
@@ -63,7 +63,7 @@ export function LoginForm() {
     <div className="bg-white rounded-xl shadow-2xl shadow-black/20 p-8 border border-white/10">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && (
-          <div role="alert" className="bg-red-50 text-red-700 text-sm px-3 py-2.5 rounded-lg border border-red-200">
+          <div role="alert" className="bg-red-50 text-red-700 text-sm px-3 py-2.5 rounded-lg border border-red-200 animate-alert-in">
             {error}
           </div>
         )}
@@ -117,11 +117,14 @@ export function LoginForm() {
           className="w-full h-11 bg-smu-gold hover:bg-smu-gold-hover text-white font-semibold text-sm tracking-wide transition-all duration-200 hover:shadow-lg hover:shadow-smu-gold/20"
         >
           {loading ? (
-            "Logging in..."
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin-slow" />
+              Logging in…
+            </span>
           ) : (
             <span className="flex items-center gap-2">
               Log in
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </span>
           )}
         </Button>

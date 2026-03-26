@@ -23,6 +23,7 @@ import {
   evaluationSubmitSchema,
 } from "@/lib/validations/evaluation";
 import { event } from "@/lib/analytics/gtag";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   courseId: string;
@@ -147,12 +148,28 @@ export function PeerEvaluationForm({
 
   if (success) {
     return (
-      <div>
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-6">
-          <p className="font-medium">Evaluation submitted</p>
-          <p className="text-sm mt-1">
-            Your evaluation for {targetStudentName} has been recorded. You cannot edit it after submission.
-          </p>
+      <div className="animate-fade-up">
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-6 mb-6 flex items-start gap-4">
+          <div className="shrink-0 animate-check-circle">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <circle cx="18" cy="18" r="17" fill="#22C55E" opacity="0.15" />
+              <circle cx="18" cy="18" r="17" stroke="#22C55E" strokeWidth="1.5" />
+              <path
+                d="M12 18.5L16 22.5L24 14.5"
+                stroke="#16A34A"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="animate-check-draw"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium">Evaluation submitted</p>
+            <p className="text-sm mt-1">
+              Your evaluation for {targetStudentName} has been recorded. You cannot edit it after submission.
+            </p>
+          </div>
         </div>
         <Button
           onClick={() => router.push(`/student/peer-evaluations/${courseId}`)}
@@ -169,13 +186,13 @@ export function PeerEvaluationForm({
       {/* Main form */}
       <div className="flex-1">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm animate-alert-in">
             {error}
           </div>
         )}
 
         {isSubmitted && (
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 mb-4 text-sm">
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 mb-4 text-sm animate-alert-in">
             This evaluation has been submitted and can no longer be edited.
           </div>
         )}
@@ -296,14 +313,24 @@ export function PeerEvaluationForm({
               disabled={saving || submitting}
               className="border-smu-gold text-smu-gold hover:bg-smu-gold/10"
             >
-              {saving ? "Saving..." : "Save Draft"}
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin-slow" />
+                  Saving…
+                </span>
+              ) : "Save Draft"}
             </Button>
             <Button
               onClick={submitEvaluation}
               disabled={saving || submitting}
               className="bg-smu-gold hover:bg-smu-gold-hover text-white transition-all duration-200 hover:shadow-lg hover:shadow-smu-gold/20"
             >
-              {submitting ? "Submitting..." : "Submit Evaluation"}
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin-slow" />
+                  Submitting…
+                </span>
+              ) : "Submit Evaluation"}
             </Button>
           </div>
         )}
