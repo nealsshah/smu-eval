@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  student_id                                              String           @id @db.VarChar(50)
+  first_name                                              String           @db.VarChar(100)
+  last_name                                               String           @db.VarChar(100)
+  email                                                   String           @unique(map: "email") @db.VarChar(255)
+  import_valid_flag                                       Boolean?
+  password_hash                                           String           @db.VarChar(255)
+  Enrollment                                              Enrollment[]
+  GroupMember                                             GroupMember[]
+  PeerEvaluation_PeerEvaluation_rater_student_idToStudent PeerEvaluation[] @relation("PeerEvaluation_rater_student_idToStudent")
+  PeerEvaluation_PeerEvaluation_ratee_student_idToStudent PeerEvaluation[] @relation("PeerEvaluation_ratee_student_idToStudent")
+}
+
+model Professor {
+  professor_id  String         @id @db.VarChar(50)
+  full_name     String         @db.VarChar(100)
+  email         String         @unique(map: "email") @db.VarChar(255)
+  role          String?        @db.VarChar(50)
+  password_hash String         @db.VarChar(255)
+  Course        Course[]
+  ProjectGroup  ProjectGroup[]
+}
+
+model Course {
+  course_id       String            @id @db.VarChar(50)
+  course_name     String            @db.VarChar(100)
+  professor_id    String            @db.VarChar(50)
+  semester        Int
+  Professor       Professor         @relation(fields: [professor_id], references: [professor_id], onDelete: NoAction, onUpdate: NoAction, map: "Course_ibfk_1")
+  Enrollment      Enrollment[]
+  EvaluationCycle EvaluationCycle[]
+  ProjectGroup    ProjectGroup[]
+
+  @@index([professor_id], map: "professor_id")
+}
+
+model ProjectGroup {
+  group_id                String            @id @db.VarChar(50)
+  course_id               String            @db.VarChar(50)
+  group_name              String            @db.VarChar(100)
+  created_by_professor_id String            @db.VarChar(50)
+  EvaluationCycle         EvaluationCycle[]
+  GroupMember             GroupMember[]
+  Course                  Course            @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "ProjectGroup_ibfk_1")
+  Professor               Professor         @relation(fields: [created_by_professor_id], references: [professor_id], onDelete: NoAction, onUpdate: NoAction, map: "ProjectGroup_ibfk_2")
+
+  @@index([course_id], map: "course_id")
+  @@index([created_by_professor_id], map: "created_by_professor_id")
+}
+
+model GroupMember {
+  group_id     String       @db.VarChar(50)
+  student_id   String       @db.VarChar(50)
+  ProjectGroup ProjectGroup @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "GroupMember_ibfk_1")
+  Student      Student      @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "GroupMember_ibfk_2")
+
+  @@id([group_id, student_id])
+  @@index([student_id], map: "student_id")
+}
+
+model EvaluationCycle {
+  cycle_id              String           @id @db.VarChar(50)
+  course_id             String           @db.VarChar(50)
+  group_id              String           @db.VarChar(50)
+  semester              Int
+  open_datetime         DateTime?        @db.DateTime(0)
+  close_datetime        DateTime?        @db.DateTime(0)
+  status                String?          @db.VarChar(50)
+  config_valid_flag     Boolean?
+  config_validation_msg String?          @db.VarChar(255)
+  Course                Course           @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "EvaluationCycle_ibfk_1")
+  ProjectGroup          ProjectGroup     @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction, map: "EvaluationCycle_ibfk_2")
+  PeerEvaluation        PeerEvaluation[]
+
+  @@index([course_id], map: "course_id")
+  @@index([group_id], map: "group_id")
+}
+
+model PeerEvaluation {
+  eval_id                                          String                @id @db.VarChar(50)
+  cycle_id                                         String                @db.VarChar(50)
+  semester                                         Int
+  rater_student_id                                 String                @db.VarChar(50)
+  ratee_student_id                                 String                @db.VarChar(50)
+  status                                           String?               @db.VarChar(50)
+  submitted_at                                     DateTime?             @db.DateTime(0)
+  written_feedback                                 String?               @db.Text
+  EvaluationCycle                                  EvaluationCycle       @relation(fields: [cycle_id], references: [cycle_id], onDelete: NoAction, onUpdate: NoAction, map: "PeerEvaluation_ibfk_1")
+  Student_PeerEvaluation_rater_student_idToStudent Student               @relation("PeerEvaluation_rater_student_idToStudent", fields: [rater_student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "PeerEvaluation_ibfk_2")
+  Student_PeerEvaluation_ratee_student_idToStudent Student               @relation("PeerEvaluation_ratee_student_idToStudent", fields: [ratee_student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "PeerEvaluation_ibfk_3")
+  PeerEvaluationScore                              PeerEvaluationScore[]
+
+  @@unique([cycle_id, rater_student_id, ratee_student_id], map: "cycle_id")
+  @@index([ratee_student_id], map: "ratee_student_id")
+  @@index([rater_student_id], map: "rater_student_id")
+}
+
+model PeerEvaluationScore {
+  eval_id        String         @db.VarChar(50)
+  semester       Int
+  criterion_id   String         @db.VarChar(10)
+  score          Decimal        @db.Decimal(4, 2)
+  PeerEvaluation PeerEvaluation @relation(fields: [eval_id], references: [eval_id], onDelete: NoAction, onUpdate: NoAction, map: "PeerEvaluationScore_ibfk_1")
+
+  @@id([eval_id, criterion_id])
+}
+
+model Enrollment {
+  enrollment_id     String  @id @db.VarChar(50)
+  student_id        String  @db.VarChar(50)
+  course_id         String  @db.VarChar(50)
+  semester          Int
+  enrollment_status String? @db.VarChar(50)
+  Course            Course  @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_enrollment_course")
+  Student           Student @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_enrollment_student")
+
+  @@unique([student_id, course_id, semester], map: "student_id")
+  @@index([course_id], map: "fk_enrollment_course")
+}

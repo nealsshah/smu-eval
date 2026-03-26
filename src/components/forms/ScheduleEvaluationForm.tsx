@@ -1,0 +1,186 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { event } from "@/lib/analytics/gtag";
+
+interface CourseData {
+  course_id: string;
+  course_name: string;
+  semester: number;
+  groups: {
+    group_id: string;
+    group_name: string;
+    students: { student_id: string; name: string }[];
+    cycles: {
+      cycle_id: string;
+      status: string | null;
+      open_datetime: string | null;
+      close_datetime: string | null;
+    }[];
+  }[];
+}
+
+export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
+  const router = useRouter();
+  const [courseId, setCourseId] = useState("");
+  const [groupId, setGroupId] = useState("");
+  const [openDate, setOpenDate] = useState("");
+  const [closeDate, setCloseDate] = useState("");
+  const [comments, setComments] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const selectedCourse = courses.find((c) => c.course_id === courseId);
+  const groups = selectedCourse?.groups || [];
+  const selectedGroup = groups.find((g) => g.group_id === groupId);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!courseId) { setError("Please select a course."); return; }
+    if (!groupId) { setError("Please select a group."); return; }
+    if (!openDate) { setError("Open date is required."); return; }
+    if (!closeDate) { setError("Close date is required."); return; }
+    if (new Date(closeDate) <= new Date(openDate)) {
+      setError("Close date must be after open date.");
+      return;
+    }
+    if (comments.length > 250) { setError("Comments cannot exceed 250 characters."); return; }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/professor/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          course_id: courseId,
+          group_id: groupId,
+          open_datetime: openDate,
+          close_datetime: closeDate,
+          comments,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(typeof data.error === "string" ? data.error : "Failed to create schedule.");
+        return;
+      }
+
+      event("schedule_created");
+      setSuccess(true);
+      router.refresh();
+    } catch {
+      setError("An error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-4">
+        <p className="font-medium">Evaluation cycle created successfully!</p>
+        <Button onClick={() => setSuccess(false)} variant="outline" className="mt-2" size="sm">
+          Create Another
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-bold text-smu-text mb-1">Course</label>
+        <Select value={courseId} onValueChange={(v) => { setCourseId(v ?? ""); setGroupId(""); }}>
+          <SelectTrigger className="bg-white">
+            <SelectValue placeholder="Select a course" />
+          </SelectTrigger>
+          <SelectContent>
+            {courses.map((c) => (
+              <SelectItem key={c.course_id} value={c.course_id}>
+                {c.course_name} (Sem {c.semester})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {selectedCourse && (
+        <div>
+          <label className="block text-sm font-bold text-smu-text mb-1">Group</label>
+          <Select value={groupId} onValueChange={(v) => setGroupId(v ?? "")}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="Select a group" />
+            </SelectTrigger>
+            <SelectContent>
+              {groups.map((g) => (
+                <SelectItem key={g.group_id} value={g.group_id}>
+                  {g.group_name} ({g.students.length} members)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-smu-text mb-1">Opens At</label>
+          <Input
+            type="datetime-local"
+            value={openDate}
+            onChange={(e) => setOpenDate(e.target.value)}
+            className="bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-smu-text mb-1">Closes At</label>
+          <Input
+            type="datetime-local"
+            value={closeDate}
+            onChange={(e) => setCloseDate(e.target.value)}
+            className="bg-white"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-bold text-smu-text mb-1">Comments</label>
+        <Textarea
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+          maxLength={250}
+          rows={3}
+          placeholder="Optional notes for this evaluation cycle..."
+          className="bg-white"
+        />
+        <p className="text-xs text-muted-foreground mt-1 text-right">{comments.length}/250</p>
+      </div>
+
+      <Button type="submit" disabled={loading} className="bg-smu-gold hover:bg-smu-gold-hover text-white">
+        {loading ? "Creating..." : "Create Evaluation Cycle"}
+      </Button>
+    </form>
+  );
+}
