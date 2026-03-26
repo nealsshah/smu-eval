@@ -202,7 +202,7 @@ export function ProfessorsTable({ initialProfessors }: { initialProfessors: Prof
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(prof)}>
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(prof)} title="Edit">
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
                         <Button
@@ -210,6 +210,7 @@ export function ProfessorsTable({ initialProfessors }: { initialProfessors: Prof
                           size="icon-sm"
                           className="text-destructive hover:text-destructive"
                           onClick={() => { setDeleteTarget(prof); setDeleteOpen(true); }}
+                          title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>

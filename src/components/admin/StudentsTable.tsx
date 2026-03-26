@@ -11,8 +11,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Pencil, Trash2, Search, Mail, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ first_name: "", last_name: "", email: "" });
+  const [form, setForm] = useState({ first_name: "", last_name: "", email: "", password: "" });
 
   const filtered = students.filter((s) => {
     const q = search.toLowerCase();
@@ -50,7 +50,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
 
   function openEdit(student: Student) {
     setEditStudent(student);
-    setForm({ first_name: student.first_name, last_name: student.last_name, email: student.email });
+    setForm({ first_name: student.first_name, last_name: student.last_name, email: student.email, password: "" });
     setEditOpen(true);
   }
 
@@ -75,7 +75,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
             : s
         )
       );
-      toast.success("Student updated");
+      toast.success(form.password ? "Student updated (password changed)" : "Student updated");
       setEditOpen(false);
     } finally {
       setSaving(false);
@@ -177,7 +177,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(student)}>
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(student)} title="Edit">
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
                         <Button
@@ -185,6 +185,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
                           size="icon-sm"
                           className="text-destructive hover:text-destructive"
                           onClick={() => { setDeleteTarget(student); setDeleteOpen(true); }}
+                          title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
@@ -214,6 +215,7 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Student</DialogTitle>
+            <DialogDescription>Update student details. Leave password blank to keep unchanged.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -227,6 +229,15 @@ export function StudentsTable({ initialStudents }: { initialStudents: Student[] 
             <div>
               <Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div>
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                placeholder="Leave blank to keep current"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
             </div>
           </div>
           <DialogFooter>
