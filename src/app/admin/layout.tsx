@@ -1,11 +1,15 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Users, UserCheck, BookOpen, ClipboardList } from "lucide-react";
 import type { SidebarItem } from "@/components/layout/Sidebar";
 
 const sidebarItems: SidebarItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Students", href: "/admin/students", icon: Users },
+  { label: "Professors", href: "/admin/professors", icon: UserCheck },
+  { label: "Courses", href: "/admin/courses", icon: BookOpen },
+  { label: "Evaluations", href: "/admin/evaluations", icon: ClipboardList },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

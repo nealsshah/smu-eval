@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   CRITERIA,
   CRITERIA_LABELS,
@@ -245,25 +246,29 @@ export function PeerEvaluationForm({
                         {CRITERIA_DESCRIPTIONS[criterion]}
                       </p>
                     </td>
-                    <td className="p-3 text-center">
-                      <Select
-                        value={scores[criterion]?.toString() ?? ""}
-                        onValueChange={(val) => handleScoreChange(criterion, val ?? "")}
-                        disabled={isSubmitted}
-                      >
-                        <SelectTrigger className="bg-white w-24 mx-auto">
-                          <SelectValue placeholder="—" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0, 1, 2, 3, 4].map(
-                            (val) => (
-                              <SelectItem key={val} value={val.toString()} label={val.toString()}>
-                                {val}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
+                    <td className="p-3">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {[0, 1, 2, 3, 4].map((val) => {
+                          const isSelected = scores[criterion] === val;
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              disabled={isSubmitted}
+                              onClick={() => handleScoreChange(criterion, isSelected ? "" : val.toString())}
+                              className={cn(
+                                "w-9 h-9 rounded-lg text-sm font-medium transition-all duration-150 border",
+                                isSelected
+                                  ? "bg-smu-navy text-white border-smu-navy shadow-sm scale-105"
+                                  : "bg-white text-smu-text border-smu-border hover:border-smu-navy/40 hover:bg-smu-navy/5",
+                                isSubmitted && "opacity-50 cursor-not-allowed"
+                              )}
+                            >
+                              {val}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </td>
                   </tr>
                 ))}
