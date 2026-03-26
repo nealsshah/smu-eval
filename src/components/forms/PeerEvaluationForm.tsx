@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -211,11 +209,13 @@ export function PeerEvaluationForm({
             }}
           >
             <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select a group member" />
+              <span className="flex flex-1 text-left">
+                {peers.find((p) => p.student_id === selectedPeer)?.name ?? "Select a group member"}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {peers.map((p) => (
-                <SelectItem key={p.student_id} value={p.student_id}>
+                <SelectItem key={p.student_id} value={p.student_id} label={p.name}>
                   {p.name}
                 </SelectItem>
               ))}
@@ -230,7 +230,7 @@ export function PeerEvaluationForm({
               <thead>
                 <tr className="bg-smu-navy text-white">
                   <th className="text-left p-3 font-medium">Criterion</th>
-                  <th className="text-center p-3 font-medium w-32">Score (0-5)</th>
+                  <th className="text-center p-3 font-medium w-32">Score (0-4)</th>
                 </tr>
               </thead>
               <tbody>
@@ -255,10 +255,10 @@ export function PeerEvaluationForm({
                           <SelectValue placeholder="—" />
                         </SelectTrigger>
                         <SelectContent>
-                          {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(
+                          {[0, 1, 2, 3, 4].map(
                             (val) => (
-                              <SelectItem key={val} value={val.toString()}>
-                                {val.toFixed(1)}
+                              <SelectItem key={val} value={val.toString()} label={val.toString()}>
+                                {val}
                               </SelectItem>
                             )
                           )}
@@ -277,7 +277,7 @@ export function PeerEvaluationForm({
           <CardContent className="py-3 flex items-center justify-between">
             <span className="font-bold text-sm">Total Points</span>
             <span className="font-heading text-2xl text-smu-navy">
-              {totalPoints.toFixed(1)} / {maxPoints.toFixed(1)}
+              {totalPoints} / {maxPoints}
             </span>
           </CardContent>
         </Card>
@@ -350,7 +350,7 @@ export function PeerEvaluationForm({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>
-                Scores range from 0.0 to 5.0
+                Scores range from 0 to 4
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-smu-gold mt-0.5">&#x2022;</span>

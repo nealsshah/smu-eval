@@ -133,11 +133,13 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
         <label className="block text-sm font-bold text-smu-text mb-1">Course</label>
         <Select value={courseId} onValueChange={(v) => { setCourseId(v ?? ""); setGroupId(""); }}>
           <SelectTrigger className="bg-white">
-            <SelectValue placeholder="Select a course" />
+            <span className="flex flex-1 text-left">
+              {selectedCourse ? `${selectedCourse.course_name} (Sem ${selectedCourse.semester})` : "Select a course"}
+            </span>
           </SelectTrigger>
           <SelectContent>
             {courses.map((c) => (
-              <SelectItem key={c.course_id} value={c.course_id}>
+              <SelectItem key={c.course_id} value={c.course_id} label={`${c.course_name} (Sem ${c.semester})`}>
                 {c.course_name} (Sem {c.semester})
               </SelectItem>
             ))}
@@ -150,11 +152,13 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
           <label className="block text-sm font-bold text-smu-text mb-1">Group</label>
           <Select value={groupId} onValueChange={(v) => setGroupId(v ?? "")}>
             <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select a group" />
+              <span className="flex flex-1 text-left">
+                {selectedGroup ? `${selectedGroup.group_name} (${selectedGroup.students.length} members)` : "Select a group"}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {groups.map((g) => (
-                <SelectItem key={g.group_id} value={g.group_id}>
+                <SelectItem key={g.group_id} value={g.group_id} label={`${g.group_name} (${g.students.length} members)`}>
                   {g.group_name} ({g.students.length} members)
                 </SelectItem>
               ))}

@@ -249,13 +249,35 @@ export async function PUT(
     });
   }
 
+  // Fetch course + professor + student details for Pabbly email
+  const course = await prisma.course.findUnique({
+    where: { course_id: courseId },
+    include: { Professor: true },
+  });
+
+  const student = await prisma.student.findUnique({
+    where: { student_id: studentId },
+  });
+
+  const scores = await prisma.peerEvaluationScore.findMany({
+    where: { eval_id: evalId },
+  });
+
+  const scoresSummary = scores.map((s) => ({
+    criterion: s.criterion_id,
+    score: Number(s.score),
+    max_score: 4,
+  }));
+
   // Fire Pabbly webhook (async, non-blocking)
   sendEvaluationSubmittedWebhook({
     eval_id: evalId,
-    rater_student_id: studentId,
-    ratee_student_id: targetStudentId,
-    course_id: courseId,
-    cycle_id: cycle.cycle_id,
+    professor_name: course?.Professor?.full_name ?? "",
+    professor_email: course?.Professor?.email ?? "",
+    student_name: student ? `${student.first_name} ${student.last_name}` : "",
+    course_name: course?.course_name ?? "",
+    semester: cycle.semester,
+    scores: scoresSummary,
     submitted_at: now.toISOString(),
   });
 

@@ -21,9 +21,9 @@ export const CRITERIA_DESCRIPTIONS: Record<string, string> = {
   C6: "Attends meetings and participates meaningfully",
 };
 
-// Scores in the DB are Decimal(4,2) — range 0.00 to 5.00
+// Scores in the DB are Decimal(4,2) — range 0.00 to 4.00
 export const MIN_SCORE = 0;
-export const MAX_SCORE = 5;
+export const MAX_SCORE = 4;
 export const MAX_COMMENT_LENGTH = 250;
 
 export const evaluationDraftSchema = z.object({

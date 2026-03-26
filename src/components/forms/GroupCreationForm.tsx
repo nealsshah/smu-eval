@@ -133,11 +133,15 @@ export function GroupCreationForm({ courses }: { courses: CourseData[] }) {
           <label className="block text-sm font-bold text-smu-text mb-1">Course</label>
           <Select value={courseId} onValueChange={(v) => { setCourseId(v ?? ""); setSelectedStudents(new Set()); }}>
             <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select a course" />
+              <span className="flex flex-1 text-left">
+                {courses.find((c) => c.course_id === courseId)
+                  ? `${selectedCourse?.course_name} (Sem ${selectedCourse?.semester})`
+                  : "Select a course"}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {courses.map((c) => (
-                <SelectItem key={c.course_id} value={c.course_id}>
+                <SelectItem key={c.course_id} value={c.course_id} label={`${c.course_name} (Sem ${c.semester})`}>
                   {c.course_name} (Sem {c.semester})
                 </SelectItem>
               ))}

@@ -9,11 +9,12 @@ async function sendWebhook(eventType: string, payload: Record<string, unknown>) 
   }
 
   try {
-    await fetch(PABBLY_WEBHOOK_URL, {
+    const res = await fetch(PABBLY_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event: eventType, data: payload, timestamp: new Date().toISOString() }),
     });
+    console.log(`[Pabbly] Webhook sent: ${eventType} → ${payload.professor_email || "unknown"} (status ${res.status})`);
   } catch (error) {
     console.error(`[Pabbly] Webhook failed for ${eventType}:`, error);
   }
