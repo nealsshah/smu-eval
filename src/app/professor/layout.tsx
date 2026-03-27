@@ -1,7 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { LayoutDashboard, Users, GraduationCap, CalendarClock, Download } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarClock, Download, FileText } from "lucide-react";
 import type { SidebarItem } from "@/components/layout/Sidebar";
 
 const sidebarItems: SidebarItem[] = [
@@ -9,6 +9,7 @@ const sidebarItems: SidebarItem[] = [
   { label: "Students", href: "/professor/students", icon: GraduationCap },
   { label: "Groups", href: "/professor/groups", icon: Users },
   { label: "Schedule Evaluations", href: "/professor/evaluations/schedule", icon: CalendarClock },
+  { label: "Reports", href: "https://virginiatech-my.sharepoint.com/:u:/r/personal/kimimontano_vt_edu/Documents/SMU%20Project/Sprint%201%20Reports.pbix?csf=1&web=1&e=FH1jsI", icon: FileText, external: true },
   { label: "Import", href: "/professor/import", icon: Download },
 ];
 

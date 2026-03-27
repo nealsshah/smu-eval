@@ -9,6 +9,7 @@ export interface SidebarItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  external?: boolean;
 }
 
 interface SidebarProps {
@@ -23,11 +24,12 @@ export function Sidebar({ items }: SidebarProps) {
       <nav className="flex-1 py-6 stagger-children">
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname.startsWith(item.href);
+          const isActive = !item.external && pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
+              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               className={cn(
                 "flex items-center gap-3 px-5 py-3 text-sm transition-all duration-200",
                 isActive
