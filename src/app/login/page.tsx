@@ -33,7 +33,7 @@ export default async function LoginPage() {
             <div className="inline-flex items-center gap-2.5 mb-4">
               <div className="w-1 h-8 bg-smu-gold rounded-full" />
               <span className="text-white/40 text-xs uppercase tracking-[0.2em] font-medium">
-                Singapore Management University
+                Singapore Management
               </span>
             </div>
             <h1 className="font-heading text-4xl text-white tracking-tight">

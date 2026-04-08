@@ -1,40 +1,29 @@
 import { requireAuth } from "@/lib/auth/session";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { CsvImportWizard } from "@/components/professor/CsvImportWizard";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function ImportPage() {
-  await requireAuth("professor");
+  const session = await requireAuth("professor");
+
+  const courses = await prisma.course.findMany({
+    where: { professor_id: session.user.id },
+    orderBy: { course_name: "asc" },
+    select: {
+      course_id: true,
+      course_name: true,
+      semester: true,
+    },
+  });
 
   return (
     <div>
       <PageHeader
         title="Import Courses & Students"
-        subtitle="Import data from SMU systems"
+        subtitle="Upload a CSV file to import students and assign them to groups"
       />
 
-      <Card className="max-w-lg">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-smu-gold" />
-            Coming Soon
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            The import feature is being set up. Once ready, you&apos;ll be able to
-            bring in courses and student enrollments directly from SMU systems.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Planned import methods:
-          </p>
-          <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-            <li>Direct API integration with SMU systems</li>
-            <li>CSV file upload</li>
-            <li>Manual data entry</li>
-          </ul>
-        </CardContent>
-      </Card>
+      <CsvImportWizard initialCourses={courses} />
     </div>
   );
 }

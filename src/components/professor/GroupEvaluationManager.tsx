@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -72,12 +74,15 @@ function criterionLabel(id: string) {
 }
 
 export function GroupEvaluationManager({ courses }: { courses: CourseWithGroups[] }) {
+  const router = useRouter();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [expandedStudents, setExpandedStudents] = useState<Set<string>>(new Set());
   const [groupData, setGroupData] = useState<Record<string, GroupData>>({});
   const [loadingGroups, setLoadingGroups] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<Evaluation | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [groupDeleteTarget, setGroupDeleteTarget] = useState<GroupInfo | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   const toggleGroup = useCallback(
     async (groupId: string) => {
@@ -152,6 +157,28 @@ export function GroupEvaluationManager({ courses }: { courses: CourseWithGroups[
     }
   };
 
+  const handleGroupDelete = async () => {
+    if (!groupDeleteTarget) return;
+    setDeletingGroup(true);
+    try {
+      const res = await fetch(`/api/professor/groups/${groupDeleteTarget.group_id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success(`Deleted group "${groupDeleteTarget.group_name}".`);
+        setGroupDeleteTarget(null);
+        router.refresh();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete group.");
+      }
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setDeletingGroup(false);
+    }
+  };
+
   return (
     <>
       {courses.map((course) => (
@@ -178,25 +205,37 @@ export function GroupEvaluationManager({ courses }: { courses: CourseWithGroups[
 
                 return (
                   <Card key={group.group_id} className="overflow-hidden">
-                    <button
-                      onClick={() => toggleGroup(group.group_id)}
-                      className="w-full text-left"
-                    >
-                      <CardHeader className="py-3 flex flex-row items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                          )}
-                          <CardTitle className="text-sm">{group.group_name}</CardTitle>
-                        </div>
+                    <CardHeader className="py-3 flex flex-row items-center justify-between">
+                      <button
+                        onClick={() => toggleGroup(group.group_id)}
+                        className="flex items-center gap-2 flex-1 text-left"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <CardTitle className="text-sm">{group.group_name}</CardTitle>
+                      </button>
+                      <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Users className="w-3.5 h-3.5" />
                           {group.members.length} members
                         </div>
-                      </CardHeader>
-                    </button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setGroupDeleteTarget(group);
+                          }}
+                          title="Delete group"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </CardHeader>
 
                     {isExpanded && (
                       <CardContent className="pt-0 pb-3">
@@ -361,6 +400,37 @@ export function GroupEvaluationManager({ courses }: { courses: CourseWithGroups[
                 </>
               ) : (
                 "Delete Evaluation"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group delete confirmation dialog */}
+      <Dialog open={!!groupDeleteTarget} onOpenChange={(open) => !open && setGroupDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Group</DialogTitle>
+            <DialogDescription>
+              This will permanently delete <strong>{groupDeleteTarget?.group_name}</strong>, remove
+              all members from the group, and delete all associated evaluation cycles and peer
+              evaluations. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleGroupDelete}
+              disabled={deletingGroup}
+            >
+              {deletingGroup ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Group"
               )}
             </Button>
           </DialogFooter>
