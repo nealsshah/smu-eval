@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/auth-options";
 import { prisma } from "@/lib/db/prisma";
 import { importSubmissionSchema, validateCsvRows } from "@/lib/validations/import";
 import bcrypt from "bcryptjs";
+import { sendStudentImportedWebhook } from "@/lib/integrations/pabbly";
 
 const DEFAULT_PASSWORD = "password123";
 
@@ -202,6 +203,29 @@ export async function POST(request: NextRequest) {
         },
       });
     }, { timeout: 30000 });
+
+    // Fire Pabbly webhooks for non-SMU email students (fire-and-forget)
+    const professorName = session.user.name || "";
+    const courseName = course.course_name;
+
+    // Build group member counts
+    const groupMemberCounts = new Map<string, number>();
+    for (const row of rows) {
+      const g = row.group.trim();
+      groupMemberCounts.set(g, (groupMemberCounts.get(g) || 0) + 1);
+    }
+
+    for (const row of rows) {
+      const groupName = row.group.trim();
+      sendStudentImportedWebhook({
+        student_email: row.email.trim().toLowerCase(),
+        student_name: `${row.first_name.trim()} ${row.last_name.trim()}`,
+        professor_name: professorName,
+        course_name: courseName,
+        group_number: groupName,
+        ppl_in_group: groupMemberCounts.get(groupName) || 0,
+      });
+    }
 
     return NextResponse.json(
       {

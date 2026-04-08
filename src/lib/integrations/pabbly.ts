@@ -1,7 +1,7 @@
-const PABBLY_WEBHOOK_URL = process.env.PABBLY_WEBHOOK_URL;
+const PABBLY_EVALUATION_WEBHOOK_URL = process.env.PABBLY_EVALUATION_WEBHOOK_URL;
 
 async function sendWebhook(eventType: string, payload: Record<string, unknown>) {
-  if (!PABBLY_WEBHOOK_URL) {
+  if (!PABBLY_EVALUATION_WEBHOOK_URL) {
     if (process.env.NODE_ENV === "development") {
       console.log(`[Pabbly] Webhook not configured. Event: ${eventType}`, payload);
     }
@@ -9,7 +9,7 @@ async function sendWebhook(eventType: string, payload: Record<string, unknown>) 
   }
 
   try {
-    const res = await fetch(PABBLY_WEBHOOK_URL, {
+    const res = await fetch(PABBLY_EVALUATION_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event: eventType, data: payload, timestamp: new Date().toISOString() }),
@@ -34,4 +34,46 @@ export function sendGroupCreatedWebhook(payload: Record<string, unknown>) {
 
 export function sendImportCompletedWebhook(payload: Record<string, unknown>) {
   return sendWebhook("import_completed", payload);
+}
+
+const PABBLY_STUDENT_IMPORT_WEBHOOK_URL = process.env.PABBLY_STUDENT_IMPORT_WEBHOOK_URL;
+
+export async function sendStudentImportedWebhook(payload: {
+  student_email: string;
+  student_name: string;
+  professor_name: string;
+  course_name: string;
+  group_number: string;
+  ppl_in_group: number;
+}) {
+  // Only trigger for non-SMU emails
+  if (payload.student_email.toLowerCase().endsWith("@smu.edu")) {
+    return;
+  }
+
+  if (!PABBLY_STUDENT_IMPORT_WEBHOOK_URL) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Pabbly] Student import webhook not configured.", payload);
+    }
+    return;
+  }
+
+  try {
+    const formBody = new URLSearchParams(
+      Object.entries(payload).map(([k, v]) => [k, String(v)])
+    );
+    const res = await fetch(PABBLY_STUDENT_IMPORT_WEBHOOK_URL!, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formBody.toString(),
+    });
+    console.log(
+      `[Pabbly] Student imported webhook sent for ${payload.student_email} (status ${res.status})`
+    );
+  } catch (error) {
+    console.error(
+      `[Pabbly] Student imported webhook failed for ${payload.student_email}:`,
+      error
+    );
+  }
 }
