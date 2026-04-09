@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
 import { prisma } from "@/lib/db/prisma";
+import { generateStudentId } from "@/lib/db/id-generation";
 import bcrypt from "bcryptjs";
-
-function generateStudentId() {
-  return `S${Date.now().toString(36).toUpperCase()}`;
-}
 
 function generateEnrollmentId() {
   return `E${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
@@ -71,7 +68,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Create new student + enrollment
-  const studentId = generateStudentId();
+  const studentId = await generateStudentId();
   const passwordHash = await bcrypt.hash(password, 10);
 
   await prisma.$transaction([

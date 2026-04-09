@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
 import { prisma } from "@/lib/db/prisma";
+import { generateProfessorId } from "@/lib/db/id-generation";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
@@ -28,11 +29,11 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { professor_id, full_name, email, role, password } = body;
+  const { full_name, email, role, password } = body;
 
-  if (!professor_id || !full_name || !email || !password) {
+  if (!full_name || !email || !password) {
     return NextResponse.json(
-      { error: "professor_id, full_name, email, and password are required" },
+      { error: "full_name, email, and password are required" },
       { status: 400 }
     );
   }
@@ -42,11 +43,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A professor with this email already exists" }, { status: 409 });
   }
 
-  const existingId = await prisma.professor.findUnique({ where: { professor_id } });
-  if (existingId) {
-    return NextResponse.json({ error: "A professor with this ID already exists" }, { status: 409 });
-  }
-
+  const professor_id = await generateProfessorId();
   const password_hash = await bcrypt.hash(password, 10);
 
   const professor = await prisma.professor.create({

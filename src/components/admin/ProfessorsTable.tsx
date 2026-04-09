@@ -26,7 +26,7 @@ interface Professor {
   _count: { ProjectGroup: number };
 }
 
-const emptyForm = { professor_id: "", full_name: "", email: "", role: "Professor", password: "" };
+const emptyForm = { full_name: "", email: "", role: "Professor", password: "" };
 
 export function ProfessorsTable({ initialProfessors }: { initialProfessors: Professor[] }) {
   const [professors, setProfessors] = useState(initialProfessors);
@@ -50,7 +50,7 @@ export function ProfessorsTable({ initialProfessors }: { initialProfessors: Prof
 
   function openEdit(prof: Professor) {
     setEditProf(prof);
-    setForm({ professor_id: prof.professor_id, full_name: prof.full_name, email: prof.email, role: prof.role || "Professor", password: "" });
+    setForm({ full_name: prof.full_name, email: prof.email, role: prof.role || "Professor", password: "" });
     setEditOpen(true);
   }
 
@@ -88,7 +88,7 @@ export function ProfessorsTable({ initialProfessors }: { initialProfessors: Prof
   }
 
   async function handleCreate() {
-    if (!form.professor_id || !form.full_name || !form.email || !form.password) {
+    if (!form.full_name || !form.email || !form.password) {
       toast.error("All fields are required");
       return;
     }
@@ -243,14 +243,6 @@ export function ProfessorsTable({ initialProfessors }: { initialProfessors: Prof
             <DialogDescription>Create a new professor account.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div>
-              <Label>Professor ID</Label>
-              <Input
-                placeholder="e.g. P004"
-                value={form.professor_id}
-                onChange={(e) => setForm({ ...form, professor_id: e.target.value })}
-              />
-            </div>
             <div>
               <Label>Full Name</Label>
               <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />

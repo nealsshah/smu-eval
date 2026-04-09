@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { importSubmissionSchema, validateCsvRows } from "@/lib/validations/import";
 import bcrypt from "bcryptjs";
 import { sendStudentImportedWebhook } from "@/lib/integrations/pabbly";
+import { generateStudentId } from "@/lib/db/id-generation";
 
 const DEFAULT_PASSWORD = "password123";
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
           studentId = existingStudent.student_id;
           studentsEnrolled++;
         } else {
-          studentId = generateId("S");
+          studentId = await generateStudentId();
           await tx.student.create({
             data: {
               student_id: studentId,
