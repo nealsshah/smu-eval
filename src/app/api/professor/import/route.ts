@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { importSubmissionSchema, validateCsvRows } from "@/lib/validations/import";
 import bcrypt from "bcryptjs";
 import { sendStudentImportedWebhook } from "@/lib/integrations/pabbly";
-import { generateStudentId } from "@/lib/db/id-generation";
+import { createStudentIdGenerator } from "@/lib/db/id-generation";
 
 const DEFAULT_PASSWORD = "password123";
 
@@ -92,6 +92,8 @@ export async function POST(request: NextRequest) {
   let groupsCreated = 0;
 
   try {
+    const nextStudentId = await createStudentIdGenerator();
+
     await prisma.$transaction(async (tx) => {
       // Track group name -> group_id mapping
       const groupMap = new Map<string, string>();
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
           studentId = existingStudent.student_id;
           studentsEnrolled++;
         } else {
-          studentId = await generateStudentId();
+          studentId = nextStudentId();
           await tx.student.create({
             data: {
               student_id: studentId,
