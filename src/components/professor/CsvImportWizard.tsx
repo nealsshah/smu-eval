@@ -46,17 +46,19 @@ type Step = 1 | 2 | 3 | 4;
 
 export function CsvImportWizard({
   initialCourses,
+  preselectedCourseId,
 }: {
   initialCourses: Course[];
+  preselectedCourseId?: string;
 }) {
   const router = useRouter();
 
-  // Step state
-  const [step, setStep] = useState<Step>(1);
+  // Step state — skip to step 2 if course is preselected
+  const [step, setStep] = useState<Step>(preselectedCourseId ? 2 : 1);
 
   // Step 1: Course
   const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [courseId, setCourseId] = useState("");
+  const [courseId, setCourseId] = useState(preselectedCourseId ?? "");
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [newCourseName, setNewCourseName] = useState("");
   const [newSemester, setNewSemester] = useState("");
