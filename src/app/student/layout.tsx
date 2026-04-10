@@ -1,13 +1,14 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { LayoutDashboard, ClipboardList, Users } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, FileText } from "lucide-react";
 import type { SidebarItem } from "@/components/layout/Sidebar";
 
 const sidebarItems: SidebarItem[] = [
   { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
   { label: "Peer Evaluations", href: "/student/peer-evaluations", icon: ClipboardList },
   { label: "Groups", href: "/student/groups", icon: Users },
+  { label: "Reports", href: "/student/reports", icon: FileText },
 ];
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
