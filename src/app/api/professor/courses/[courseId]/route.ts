@@ -41,12 +41,6 @@ export async function DELETE(
   });
   const cycleIds = cycles.map((c) => c.cycle_id);
 
-  const importLogs = await prisma.importLog.findMany({
-    where: { course_id: courseId },
-    select: { import_id: true },
-  });
-  const importIds = importLogs.map((l) => l.import_id);
-
   await prisma.$transaction([
     // Evaluations
     prisma.peerEvaluationScore.deleteMany({
@@ -61,9 +55,6 @@ export async function DELETE(
     prisma.projectGroup.deleteMany({ where: { course_id: courseId } }),
     // Enrollments
     prisma.enrollment.deleteMany({ where: { course_id: courseId } }),
-    // Import logs (ImportError cascades automatically)
-    prisma.importError.deleteMany({ where: { import_id: { in: importIds } } }),
-    prisma.importLog.deleteMany({ where: { course_id: courseId } }),
     // Course
     prisma.course.delete({ where: { course_id: courseId } }),
   ]);
