@@ -4,8 +4,19 @@ import { authOptions } from "@/lib/auth/auth-options";
 import { prisma } from "@/lib/db/prisma";
 import { createCourseSchema } from "@/lib/validations/import";
 
-function generateCourseId() {
-  return `C${Date.now().toString(36).toUpperCase()}`;
+async function generateCourseId(): Promise<string> {
+  const courses = await prisma.course.findMany({
+    where: { course_id: { startsWith: "C" } },
+    select: { course_id: true },
+  });
+
+  let maxNum = 0;
+  for (const c of courses) {
+    const num = parseInt(c.course_id.slice(1), 10);
+    if (!isNaN(num) && num > maxNum) maxNum = num;
+  }
+
+  return `C${String(maxNum + 1).padStart(3, "0")}`;
 }
 
 export async function GET() {
@@ -47,7 +58,7 @@ export async function POST(request: NextRequest) {
 
   const course = await prisma.course.create({
     data: {
-      course_id: generateCourseId(),
+      course_id: await generateCourseId(),
       course_name: course_name.trim(),
       professor_id: session.user.id,
       semester,
