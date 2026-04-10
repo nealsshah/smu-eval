@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <PageHeader title="Admin Dashboard" subtitle="System overview" />
+      <PageHeader title="Students Dashboard" subtitle="System overview" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5 stagger-children">
         {stats.map((stat) => {

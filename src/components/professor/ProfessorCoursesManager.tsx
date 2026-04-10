@@ -16,6 +16,7 @@ import {
   Plus,
   Loader2,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 
 interface GroupMember {
@@ -47,6 +48,10 @@ export function ProfessorCoursesManager({ initialCourses }: { initialCourses: Co
   const [newSemester, setNewSemester] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+
+  // Delete course
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function toggleExpand(courseId: string) {
     setExpanded((prev) => {
@@ -93,8 +98,63 @@ export function ProfessorCoursesManager({ initialCourses }: { initialCourses: Co
     }
   }
 
+  async function handleDelete(courseId: string) {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/professor/courses/${courseId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete course");
+        return;
+      }
+      toast.success("Course deleted");
+      setConfirmDelete(null);
+      router.refresh();
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <>
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="w-full max-w-md mx-4 animate-fade-up">
+            <CardContent className="p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-smu-text">Delete Course</h3>
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete the course and all associated groups, enrollments, evaluations, and import history. This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDelete(null)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => handleDelete(confirmDelete)}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Course"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <PageHeader title="Courses" subtitle="Manage your courses and import students" />
         <Button
@@ -207,14 +267,24 @@ export function ProfessorCoursesManager({ initialCourses }: { initialCourses: Co
                           <td className="py-3 px-4 text-muted-foreground">{course.ProjectGroup.length}</td>
                           <td className="py-3 px-4 text-muted-foreground">{course._count.EvaluationCycle}</td>
                           <td className="py-3 px-4 text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => router.push(`/professor/import?courseId=${course.course_id}`)}
-                            >
-                              <Upload className="w-3.5 h-3.5 mr-1" />
-                              Import
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push(`/professor/import?courseId=${course.course_id}`)}
+                              >
+                                <Upload className="w-3.5 h-3.5 mr-1" />
+                                Import
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                onClick={() => setConfirmDelete(course.course_id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                         {isExpanded && (
