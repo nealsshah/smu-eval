@@ -43,12 +43,25 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
   const [successMessage, setSuccessMessage] = useState("");
 
   const selectedCourse = courses.find((c) => c.course_id === courseId);
-  const groups = selectedCourse?.groups || [];
+  const allGroups = selectedCourse?.groups || [];
+
+  function hasActiveCycle(g: CourseData["groups"][number]) {
+    return g.cycles.some((c) => c.status === "Open");
+  }
+
+  // Unscheduled groups first, then scheduled at the bottom
+  const groups = [...allGroups].sort((a, b) => {
+    const aScheduled = hasActiveCycle(a) ? 1 : 0;
+    const bScheduled = hasActiveCycle(b) ? 1 : 0;
+    return aScheduled - bScheduled;
+  });
+
+  const unscheduledGroups = groups.filter((g) => !hasActiveCycle(g));
   const selectedGroup = groups.find((g) => g.group_id === groupId);
   const isAllGroups = groupId === "__all__";
 
   const totalStudents = isAllGroups
-    ? groups.reduce((sum, g) => sum + g.students.length, 0)
+    ? unscheduledGroups.reduce((sum, g) => sum + g.students.length, 0)
     : selectedGroup?.students.length || 0;
 
   function resetForm() {
@@ -174,24 +187,39 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
             <SelectTrigger className="bg-white">
               <span className="flex flex-1 text-left truncate">
                 {isAllGroups
-                  ? `All Groups (${groups.length})`
+                  ? `All Unscheduled Groups (${unscheduledGroups.length})`
                   : selectedGroup
                     ? `${selectedGroup.group_name} (${selectedGroup.students.length} members)`
                     : "Select a group"}
               </span>
             </SelectTrigger>
             <SelectContent>
-              {groups.length > 1 && (
-                <SelectItem value="__all__" label={`All Groups (${groups.length})`}>
-                  <span className="font-medium">All Groups</span>
-                  <span className="text-muted-foreground ml-1">({groups.length} groups)</span>
+              {unscheduledGroups.length > 1 && (
+                <SelectItem value="__all__" label={`All Unscheduled Groups (${unscheduledGroups.length})`}>
+                  <span className="font-medium">All Unscheduled Groups</span>
+                  <span className="text-muted-foreground ml-1">({unscheduledGroups.length})</span>
                 </SelectItem>
               )}
-              {groups.map((g) => (
-                <SelectItem key={g.group_id} value={g.group_id} label={`${g.group_name} (${g.students.length} members)`}>
-                  {g.group_name} ({g.students.length} members)
-                </SelectItem>
-              ))}
+              {groups.map((g) => {
+                const scheduled = hasActiveCycle(g);
+                return (
+                  <SelectItem
+                    key={g.group_id}
+                    value={g.group_id}
+                    label={`${g.group_name} (${g.students.length} members)${scheduled ? " — Scheduled" : ""}`}
+                    disabled={scheduled}
+                  >
+                    <span className={scheduled ? "text-muted-foreground" : ""}>
+                      {g.group_name} ({g.students.length} members)
+                    </span>
+                    {scheduled && (
+                      <span className="ml-1.5 text-xs bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full">
+                        Scheduled
+                      </span>
+                    )}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -236,7 +264,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
           {(openDate && closeDate) && (
             <div className="bg-blue-50/70 border border-blue-100 rounded-lg px-3 py-2.5 text-xs text-blue-700">
               {isAllGroups
-                ? `${groups.length} groups · ${totalStudents} students will be emailed`
+                ? `${unscheduledGroups.length} groups · ${totalStudents} students will be emailed`
                 : `${totalStudents} student(s) will be emailed`}
             </div>
           )}
@@ -254,7 +282,7 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
             ) : (
               <span className="flex items-center gap-2">
                 <Send className="w-3.5 h-3.5" />
-                {isAllGroups ? `Schedule All ${groups.length} Groups` : "Schedule Evaluation"}
+                {isAllGroups ? `Schedule All ${unscheduledGroups.length} Groups` : "Schedule Evaluation"}
               </span>
             )}
           </Button>
