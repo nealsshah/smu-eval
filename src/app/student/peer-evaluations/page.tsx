@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-import { pickActiveCycle } from "@/lib/services/evaluation";
+import { getCycleWithDeadlineInfo } from "@/lib/services/evaluation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -48,9 +48,11 @@ export default async function PeerEvaluationsPage() {
       const group = groupMembership.ProjectGroup;
       const peers = group.GroupMember.filter((m) => m.student_id !== studentId);
 
-      // Get evaluations for the active/latest cycle
-      const cycle = pickActiveCycle(group.EvaluationCycle);
-      if (!cycle) return null;
+      // Get cycle info with deadline details
+      const deadlineInfo = getCycleWithDeadlineInfo(group.EvaluationCycle);
+      if (!deadlineInfo) return null;
+
+      const { cycle, isActive, isPastDue, isUpcoming, deadlineLabel, daysLeft } = deadlineInfo;
 
       const evaluations = await prisma.peerEvaluation.findMany({
         where: {
@@ -71,6 +73,11 @@ export default async function PeerEvaluationsPage() {
         submitted,
         drafts,
         pending: total - submitted - drafts,
+        isActive,
+        isPastDue,
+        isUpcoming,
+        deadlineLabel,
+        daysLeft,
       };
     })
   );
@@ -95,36 +102,71 @@ export default async function PeerEvaluationsPage() {
           {courses.map((data) => {
             if (!data) return null;
             const allDone = data.submitted === data.peers;
+
             return (
               <Link
                 key={data.course.course_id}
-                href={`/student/peer-evaluations/${data.course.course_id}`}
+                href={
+                  data.isActive
+                    ? `/student/peer-evaluations/${data.course.course_id}`
+                    : "#"
+                }
+                className={!data.isActive ? "pointer-events-none" : ""}
               >
-                <Card className="hover:border-smu-gold/50 transition-all duration-200 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5">
+                <Card
+                  className={`transition-all duration-200 ${
+                    data.isActive
+                      ? "hover:border-smu-gold/50 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5"
+                      : "opacity-75"
+                  }`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">
                         {data.course.course_name}
                       </CardTitle>
-                      <StatusBadge
-                        status={allDone ? "complete" : data.drafts > 0 ? "in-progress" : "incomplete"}
-                      />
+                      {data.isActive ? (
+                        <StatusBadge
+                          status={allDone ? "complete" : data.drafts > 0 ? "in-progress" : "incomplete"}
+                        />
+                      ) : data.isPastDue ? (
+                        <span className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">
+                          Closed
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                          Upcoming
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Group: {data.group.group_name} &middot; Semester {data.course.semester}
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-6 text-sm">
-                      <span className="text-green-600">{data.submitted} submitted</span>
-                      <span className="text-yellow-600">{data.drafts} drafts</span>
-                      <span className="text-gray-500">{data.pending} pending</span>
-                    </div>
-                    {data.cycle.close_datetime && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Due by {new Date(data.cycle.close_datetime).toLocaleDateString()}
-                      </p>
+                    {data.isActive && (
+                      <div className="flex gap-6 text-sm">
+                        <span className="text-green-600">{data.submitted} submitted</span>
+                        <span className="text-yellow-600">{data.drafts} drafts</span>
+                        <span className="text-gray-500">{data.pending} pending</span>
+                      </div>
                     )}
+                    <p
+                      className={`text-xs mt-2 font-medium ${
+                        data.isPastDue
+                          ? "text-red-600"
+                          : data.isActive && data.daysLeft <= 2
+                            ? "text-orange-600"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {data.deadlineLabel}
+                      {data.isActive && data.cycle.close_datetime && (
+                        <span className="font-normal text-muted-foreground ml-1">
+                          ({new Date(data.cycle.close_datetime).toLocaleDateString()})
+                        </span>
+                      )}
+                    </p>
                   </CardContent>
                 </Card>
               </Link>

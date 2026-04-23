@@ -36,6 +36,44 @@ export function sendImportCompletedWebhook(payload: Record<string, unknown>) {
   return sendWebhook("import_completed", payload);
 }
 
+const PABBLY_EVAL_SCHEDULED_WEBHOOK_URL = process.env.PABBLY_EVAL_SCHEDULED_WEBHOOK_URL;
+
+export async function sendEvalScheduledStudentWebhook(payload: {
+  student_email: string;
+  student_name: string;
+  professor_name: string;
+  course_name: string;
+  group_name: string;
+  deadline: string;
+  open_date: string;
+}) {
+  if (!PABBLY_EVAL_SCHEDULED_WEBHOOK_URL) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Pabbly] Eval scheduled webhook not configured.", payload);
+    }
+    return;
+  }
+
+  try {
+    const formBody = new URLSearchParams(
+      Object.entries(payload).map(([k, v]) => [k, String(v)])
+    );
+    const res = await fetch(PABBLY_EVAL_SCHEDULED_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formBody.toString(),
+    });
+    console.log(
+      `[Pabbly] Eval scheduled webhook sent for ${payload.student_email} (status ${res.status})`
+    );
+  } catch (error) {
+    console.error(
+      `[Pabbly] Eval scheduled webhook failed for ${payload.student_email}:`,
+      error
+    );
+  }
+}
+
 const PABBLY_STUDENT_IMPORT_WEBHOOK_URL = process.env.PABBLY_STUDENT_IMPORT_WEBHOOK_URL;
 
 export async function sendStudentImportedWebhook(payload: {

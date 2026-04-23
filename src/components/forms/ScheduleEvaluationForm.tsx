@@ -10,9 +10,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send, RotateCcw } from "lucide-react";
 import { event } from "@/lib/analytics/gtag";
 
 interface CourseData {
@@ -41,11 +40,26 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
   const [comments, setComments] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const selectedCourse = courses.find((c) => c.course_id === courseId);
   const groups = selectedCourse?.groups || [];
   const selectedGroup = groups.find((g) => g.group_id === groupId);
+  const isAllGroups = groupId === "__all__";
+
+  const totalStudents = isAllGroups
+    ? groups.reduce((sum, g) => sum + g.students.length, 0)
+    : selectedGroup?.students.length || 0;
+
+  function resetForm() {
+    setSuccessMessage("");
+    setCourseId("");
+    setGroupId("");
+    setOpenDate("");
+    setCloseDate("");
+    setComments("");
+    setError("");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,14 +90,21 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         setError(typeof data.error === "string" ? data.error : "Could not create the evaluation cycle. Please try again.");
         return;
       }
 
       event("schedule_created");
-      setSuccess(true);
+
+      if (isAllGroups && data.message) {
+        setSuccessMessage(data.message);
+      } else {
+        setSuccessMessage("Evaluation cycle created — students have been notified.");
+      }
+
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -92,37 +113,36 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
     }
   }
 
-  if (success) {
+  if (successMessage) {
     return (
       <div className="animate-fade-up">
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-6 mb-4 flex items-start gap-4">
-          <div className="shrink-0 animate-check-circle">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-              <circle cx="18" cy="18" r="17" fill="#22C55E" opacity="0.15" />
-              <circle cx="18" cy="18" r="17" stroke="#22C55E" strokeWidth="1.5" />
+        <div className="flex flex-col items-center text-center py-4">
+          <div className="animate-check-circle mb-3">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="23" fill="#22C55E" opacity="0.12" />
+              <circle cx="24" cy="24" r="23" stroke="#22C55E" strokeWidth="1.5" />
               <path
-                d="M12 18.5L16 22.5L24 14.5"
+                d="M16 24.5L21 29.5L32 18.5"
                 stroke="#16A34A"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="animate-check-draw"
               />
             </svg>
           </div>
-          <div>
-            <p className="font-medium">Evaluation cycle created. Students can now submit evaluations during the open period.</p>
-            <Button onClick={() => setSuccess(false)} variant="outline" className="mt-3" size="sm">
-              Create Another
-            </Button>
-          </div>
+          <p className="text-sm font-medium text-green-800 mb-4">{successMessage}</p>
+          <Button onClick={resetForm} variant="outline" size="sm">
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+            Schedule Another
+          </Button>
         </div>
       </div>
     );
   }
 
-  return  (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm animate-alert-in">
           {error}
@@ -130,10 +150,10 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
       )}
 
       <div>
-        <label className="block text-sm font-bold text-smu-text mb-1">Course</label>
+        <label className="block text-sm font-medium text-smu-text mb-1.5">Course</label>
         <Select value={courseId} onValueChange={(v) => { setCourseId(v ?? ""); setGroupId(""); }}>
           <SelectTrigger className="bg-white">
-            <span className="flex flex-1 text-left">
+            <span className="flex flex-1 text-left truncate">
               {selectedCourse ? `${selectedCourse.course_name} (Sem ${selectedCourse.semester})` : "Select a course"}
             </span>
           </SelectTrigger>
@@ -148,15 +168,25 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
       </div>
 
       {selectedCourse && (
-        <div>
-          <label className="block text-sm font-bold text-smu-text mb-1">Group</label>
+        <div className="animate-fade-up">
+          <label className="block text-sm font-medium text-smu-text mb-1.5">Group</label>
           <Select value={groupId} onValueChange={(v) => setGroupId(v ?? "")}>
             <SelectTrigger className="bg-white">
-              <span className="flex flex-1 text-left">
-                {selectedGroup ? `${selectedGroup.group_name} (${selectedGroup.students.length} members)` : "Select a group"}
+              <span className="flex flex-1 text-left truncate">
+                {isAllGroups
+                  ? `All Groups (${groups.length})`
+                  : selectedGroup
+                    ? `${selectedGroup.group_name} (${selectedGroup.students.length} members)`
+                    : "Select a group"}
               </span>
             </SelectTrigger>
             <SelectContent>
+              {groups.length > 1 && (
+                <SelectItem value="__all__" label={`All Groups (${groups.length})`}>
+                  <span className="font-medium">All Groups</span>
+                  <span className="text-muted-foreground ml-1">({groups.length} groups)</span>
+                </SelectItem>
+              )}
               {groups.map((g) => (
                 <SelectItem key={g.group_id} value={g.group_id} label={`${g.group_name} (${g.students.length} members)`}>
                   {g.group_name} ({g.students.length} members)
@@ -167,48 +197,69 @@ export function ScheduleEvaluationForm({ courses }: { courses: CourseData[] }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-bold text-smu-text mb-1">Start Date</label>
-          <Input
-            type="datetime-local"
-            value={openDate}
-            onChange={(e) => setOpenDate(e.target.value)}
-            className="bg-white"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-smu-text mb-1">Due Date</label>
-          <Input
-            type="datetime-local"
-            value={closeDate}
-            onChange={(e) => setCloseDate(e.target.value)}
-            className="bg-white"
-          />
-        </div>
-      </div>
+      {groupId && (
+        <div className="animate-fade-up space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-smu-text mb-1.5">Opens</label>
+              <Input
+                type="datetime-local"
+                value={openDate}
+                onChange={(e) => setOpenDate(e.target.value)}
+                className="bg-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-smu-text mb-1.5">Deadline</label>
+              <Input
+                type="datetime-local"
+                value={closeDate}
+                onChange={(e) => setCloseDate(e.target.value)}
+                className="bg-white text-sm"
+              />
+            </div>
+          </div>
 
-      <div>
-        <label className="block text-sm font-bold text-smu-text mb-1">Notes (optional)</label>
-        <Textarea
-          value={comments}
-          onChange={(e) => setComments(e.target.value)}
-          maxLength={250}
-          rows={3}
-          placeholder="Add any instructions or context for this evaluation cycle..."
-          className="bg-white"
-        />
-        <p className="text-xs text-muted-foreground mt-1 text-right">{comments.length}/250</p>
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-smu-text mb-1.5">Notes <span className="font-normal text-muted-foreground">(optional)</span></label>
+            <Textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              maxLength={250}
+              rows={2}
+              placeholder="Instructions or context for students..."
+              className="bg-white text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-1 text-right">{comments.length}/250</p>
+          </div>
 
-      <Button type="submit" disabled={loading} className="bg-smu-gold hover:bg-smu-gold-hover text-white">
-        {loading ? (
-          <span className="flex items-center gap-2">
-            <Loader2 className="w-3.5 h-3.5 animate-spin-slow" />
-            Creating…
-          </span>
-        ) : "Create Evaluation Cycle"}
-      </Button>
+          {(openDate && closeDate) && (
+            <div className="bg-blue-50/70 border border-blue-100 rounded-lg px-3 py-2.5 text-xs text-blue-700">
+              {isAllGroups
+                ? `${groups.length} groups · ${totalStudents} students will be emailed`
+                : `${totalStudents} student(s) will be emailed`}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-smu-gold hover:bg-smu-gold-hover text-white"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin-slow" />
+                {isAllGroups ? "Scheduling…" : "Scheduling…"}
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Send className="w-3.5 h-3.5" />
+                {isAllGroups ? `Schedule All ${groups.length} Groups` : "Schedule Evaluation"}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

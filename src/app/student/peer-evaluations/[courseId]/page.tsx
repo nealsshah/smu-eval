@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-import { pickActiveCycle } from "@/lib/services/evaluation";
+import { pickActiveCycle, getCycleWithDeadlineInfo } from "@/lib/services/evaluation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -53,6 +53,7 @@ export default async function CourseEvaluationsPage({
 
   const group = groupMembership.ProjectGroup;
   const cycle = pickActiveCycle(group.EvaluationCycle);
+  const deadlineInfo = getCycleWithDeadlineInfo(group.EvaluationCycle);
 
   // Get peers (exclude self)
   const peers = group.GroupMember.filter((m) => m.student_id !== studentId);
@@ -78,12 +79,45 @@ export default async function CourseEvaluationsPage({
     return aOrder - bOrder;
   });
 
+  const isActive = !!cycle;
+
   return (
     <div>
       <PageHeader
         title={course.course_name}
         subtitle={`Group: ${group.group_name} · Semester ${course.semester}`}
       />
+
+      {deadlineInfo && (
+        <div
+          className={`rounded-lg p-3 mb-4 text-sm ${
+            !isActive
+              ? "bg-red-50 border border-red-200 text-red-700"
+              : deadlineInfo.daysLeft <= 2
+                ? "bg-orange-50 border border-orange-200 text-orange-700"
+                : "bg-blue-50 border border-blue-200 text-blue-700"
+          }`}
+        >
+          {!isActive ? (
+            "This evaluation cycle is closed. You can no longer submit evaluations."
+          ) : (
+            <>
+              <span className="font-medium">{deadlineInfo.deadlineLabel}</span>
+              {deadlineInfo.cycle.close_datetime && (
+                <span className="ml-1">
+                  — {new Date(deadlineInfo.cycle.close_datetime).toLocaleString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-3 stagger-children">
         {sortedPeers.map((peer) => {
@@ -98,12 +132,19 @@ export default async function CourseEvaluationsPage({
             <Link
               key={peer.student_id}
               href={
-                cycle
+                isActive
                   ? `/student/peer-evaluations/${courseId}/${peer.student_id}`
                   : "#"
               }
+              className={!isActive ? "pointer-events-none" : ""}
             >
-              <Card className="hover:border-smu-gold/50 transition-all duration-200 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5">
+              <Card
+                className={`transition-all duration-200 ${
+                  isActive
+                    ? "hover:border-smu-gold/50 cursor-pointer hover:shadow-md hover:shadow-smu-gold/5"
+                    : "opacity-60"
+                }`}
+              >
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-smu-navy flex items-center justify-center text-white font-medium text-sm">
