@@ -69,26 +69,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Cycle not found." }, { status: 404 });
   }
 
-  // Check if there are any submitted evaluations for this cycle
-  const submittedEvals = await prisma.peerEvaluation.count({
-    where: { cycle_id: cycleId, status: "Submitted" },
-  });
-
-  if (submittedEvals > 0) {
-    return NextResponse.json(
-      { error: `Cannot delete: ${submittedEvals} evaluation(s) have already been submitted for this cycle.` },
-      { status: 400 }
-    );
-  }
-
-  // Delete any draft evaluations and their scores first
-  const draftEvals = await prisma.peerEvaluation.findMany({
+  // Delete all evaluations and their scores for this cycle
+  const evals = await prisma.peerEvaluation.findMany({
     where: { cycle_id: cycleId },
     select: { eval_id: true },
   });
 
-  if (draftEvals.length > 0) {
-    const evalIds = draftEvals.map((e) => e.eval_id);
+  if (evals.length > 0) {
+    const evalIds = evals.map((e) => e.eval_id);
     await prisma.peerEvaluationScore.deleteMany({
       where: { eval_id: { in: evalIds } },
     });

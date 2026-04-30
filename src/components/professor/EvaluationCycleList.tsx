@@ -204,7 +204,7 @@ export function EvaluationCycleList({ cycles }: { cycles: CycleData[] }) {
                       Delete cycle for{" "}
                       <span className="font-medium">{cycle.group_name}</span>?
                       {cycle.submitted_count > 0 &&
-                        " Cannot delete — has submitted evaluations."}
+                        ` This will also delete ${cycle.submitted_count} submitted evaluation(s).`}
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -221,7 +221,7 @@ export function EvaluationCycleList({ cycles }: { cycles: CycleData[] }) {
                         onClick={() =>
                           handleAction(cycle.cycle_id, "DELETE")
                         }
-                        disabled={loading || cycle.submitted_count > 0}
+                        disabled={loading}
                       >
                         Confirm Delete
                       </Button>
