@@ -1,24 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+SMU Peer Evaluation — a Next.js 16 app using Prisma, MySQL, and NextAuth.
 
-## Getting Started
+## Installation
 
-First, run the development server: 
+**Prerequisites:** Node.js 20+, npm, and a running MySQL 8 server.
+
+1. **Clone and install dependencies**
+   ```bash
+   git clone <repo-url> smu
+   cd smu
+   npm install
+   ```
+
+2. **Configure environment variables**
+
+   Copy the example file and fill in your values:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Required values in `.env`:
+   - `DATABASE_URL` — full MySQL connection string, e.g. `mysql://root:password@localhost:3306/smu_peer_eval`
+   - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` — same MySQL credentials, used by import scripts
+   - `NEXTAUTH_SECRET` — generate with `openssl rand -base64 32`
+   - `NEXTAUTH_URL` — `http://localhost:3000` for local dev
+   - `PABBLY_WEBHOOK_URL` — optional; leave blank to disable evaluation-cycle email notifications
+   - `GA_MEASUREMENT_ID` / `NEXT_PUBLIC_GA_MEASUREMENT_ID` — optional analytics
+
+3. **Create the database and apply the schema**
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE smu_peer_eval;"
+   npx prisma generate
+   npx prisma db push
+   ```
+
+4. **Run the dev server**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000).
+
+### Production build
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm start
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
