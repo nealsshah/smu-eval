@@ -1,3 +1,6 @@
+Project for BIT 4454
+
+
 SMU Peer Evaluation — a Next.js 16 app using Prisma, MySQL, and NextAuth.
 
 ## Installation
